@@ -1,0 +1,178 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>body{margin:0}</style>
+<title>テーマ別株価ボード デモ版</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%2260%22%20height%3D%2260%22%20rx%3D%229%22%20fill%3D%22%23fff%22%20stroke%3D%22%23b8382a%22%20stroke-width%3D%224%22/%3E%3Cpath%20d%3D%22M4%2011a7%207%200%200%201%207-7h21v28H4z%22%20fill%3D%22%23b8382a%22/%3E%3Cpath%20d%3D%22M32%2032h28v21a7%207%200%200%201-7%207H32z%22%20fill%3D%22%23b8382a%22/%3E%3Cg%20font-family%3D%22Yu%20Mincho%2CHiragino%20Mincho%20ProN%2Cserif%22%20font-weight%3D%22800%22%20font-size%3D%2224%22%20text-anchor%3D%22middle%22%3E%3Ctext%20x%3D%2218%22%20y%3D%2227%22%20fill%3D%22%23fff%22%3E%E5%9B%9B%3C/text%3E%3Ctext%20x%3D%2246%22%20y%3D%2227%22%20fill%3D%22%23b8382a%22%3E%E8%B1%A1%3C/text%3E%3Ctext%20x%3D%2218%22%20y%3D%2255%22%20fill%3D%22%23b8382a%22%3E%E3%83%A9%3C/text%3E%3Ctext%20x%3D%2246%22%20y%3D%2255%22%20fill%3D%22%23fff%22%3E%E3%83%9C%3C/text%3E%3C/g%3E%3C/svg%3E">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&family=Zen+Kaku+Gothic+New:wght@500;700&family=IBM+Plex+Sans:wght@500;600&display=swap">
+<style>
+/* TradingViewの暗いチャート上の表をそのまま見せるため、暗い1色で固定（どちらのテーマでも同じ見た目） */
+:root {
+  color-scheme: dark;
+  --bg: #0f1218; --panel: #131722; --head: #363a45; --grid: #2a2e39; --avg: #2a2414; --bmrow: #1e2234;
+  --tx: #d1d4dc; --dim: #8a8f9c; --white: #ffffff; --up: #3dd36b; --dn: #ff5a52;
+  --green: 76,175,80; --red: 242,54,69; --lime: 0,230,118; --orange: 255,152,0; --blue: 41,98,255; --gray: 120,123,134; --hot: 230,140,20;
+  --accent: #b8382a; --note: #9aa0ab;
+  --f-disp: "Shippori Mincho B1", "Hiragino Mincho ProN", serif;
+  --f-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --f-num: "IBM Plex Sans", "Zen Kaku Gothic New", system-ui, sans-serif;
+}
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--tx); font-family: var(--f-body); font-size: 14px; line-height: 1.6 }
+.wrap { max-width: 1760px; margin: 0 auto; padding-block: 18px 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 12px }
+header.top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap }
+.seal { width: 40px; height: 40px; border: 3px solid var(--accent); border-radius: 6px; display: grid; grid-template-columns: 1fr 1fr; font-family: var(--f-disp); font-weight: 800; font-size: 15px; line-height: 1; overflow: hidden; flex: none }
+.seal span { display: flex; align-items: center; justify-content: center }
+.seal .r { background: var(--accent); color: #fff } .seal .w { background: #fff; color: var(--accent) }
+.brand small { display: block; font-size: 12px; color: var(--dim); letter-spacing: .08em }
+h1 { margin: 0; font-size: clamp(20px, 2.6vw, 26px); font-weight: 700; color: var(--white); text-wrap: balance }
+.tag { font-size: 12px; font-weight: 700; color: #fff; background: var(--accent); border-radius: 5px; padding: 2px 9px; margin-left: 8px; vertical-align: middle }
+.note { margin: 0; font-size: 13px; color: var(--note); max-width: 110ch }
+.ctrl { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; background: var(--panel); border: 1px solid var(--grid); border-radius: 10px; padding: 10px 14px; font-size: 13px; color: var(--dim) }
+.ctrl label { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap }
+.ctrl select { font: inherit; color: var(--tx); background: #1b2030; border: 1px solid var(--grid); border-radius: 6px; padding: 4px 8px }
+.ctrl .date { flex: 1 1 280px; min-width: 0 }
+.setT { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; border-bottom: 1px dashed var(--grid); padding-bottom: 8px; margin-bottom: 2px }
+.setT b { color: var(--white); font-size: 14px }
+.setT span { color: var(--note); font-size: 12.5px }
+.ctrl input[type=range] { flex: 1; min-width: 100px; accent-color: var(--accent) }
+.dval { font-family: var(--f-num); color: var(--white); font-weight: 600; font-variant-numeric: tabular-nums }
+select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.tw { overflow-x: auto; background: var(--panel); border-radius: 8px; border: 1px solid var(--grid) }
+.board { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; min-width: 1400px; padding: 4px }
+table { border-collapse: collapse; width: 100%; font-family: var(--f-num); font-size: 13.5px; font-variant-numeric: tabular-nums; table-layout: fixed }
+th { background: var(--head); color: #fff; font-family: var(--f-body); font-weight: 700; padding: 6px 2px; border: 1px solid var(--grid); font-size: 12.5px; white-space: nowrap }
+td { border: 1px solid var(--grid); text-align: center; padding: 5px 2px; height: 31px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--tx) }
+td.dim { color: var(--dim); font-family: var(--f-body); font-size: 12.5px }
+td.nm { text-align: left; padding-left: 6px; color: #fff; font-family: var(--f-body); font-weight: 700 }
+td.w { color: #fff }
+td.p { color: var(--up) } td.m { color: var(--dn) }
+tr.av td { background-color: var(--avg) } tr.bm td { background-color: var(--bmrow) }
+tr.empty td { background: transparent }
+.c-sec { width: 9% } .c-nm { width: 16% } .c-px { width: 8.5% } .c-n { width: 9.5% }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; color: var(--note) }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 5px; vertical-align: -1px }
+.foot { font-size: 12px; color: var(--dim); text-align: center }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="seal" aria-label="四象ラボ"><span class="r">四</span><span class="w">象</span><span class="w">ラ</span><span class="r">ボ</span></div>
+    <div class="brand"><small>四象ラボ</small><h1>テーマ別株価ボード<span class="tag">デモ版</span></h1></div>
+  </header>
+  <p class="note">TradingViewのチャートの上に出す「テーマ別株価ボード」の表を、架空の銘柄・値動きで動かせるようにしたものです。四象ラボでは、このような表を、ご希望のテーマ・列に合わせてオーダーメイドで作ります。下の「設定」でテーマ・並べ替え・計算に使う足を変えてみてください（本物ではインジケーターの設定画面で変える項目です）。マスにマウスを乗せると説明が出ます。銘柄名・数値はすべて架空です。</p>
+
+  <div class="ctrl" role="group" aria-labelledby="setT">
+    <div class="setT" id="setT"><b>⚙ 設定</b><span>本物では、チャートに出ている表ではなく、インジケーター名の横の歯車（設定画面）で変えます</span></div>
+    <label for="theme">表示するテーマ <select id="theme"><option value="0">1　半導体（架空）</option><option value="1">2　銀行（架空）</option></select></label>
+    <label for="sort">並べ替え <select id="sort">
+      <option value="none">入力順</option>
+      <option value="rel">対TOPIX（大きい順）</option><option value="beta">β（大きい順）</option><option value="gann">Gann（陽の新しい順）</option><option value="vol">出来高（多い順）</option><option value="pc">前日比（大きい順）</option></select></label>
+    <label for="basis">計算に使う足 <select id="basis"><option value="0">当日</option><option value="1">前日の確定値</option></select></label>
+    <span>値の日付 <span class="dval" id="dayVal"></span></span>
+  </div>
+
+  <div class="tw"><div class="board" id="board"></div></div>
+
+  <div class="legend">
+    <span><i style="background:rgb(76,175,80)"></i>Gann 陽（上向き）</span><span><i style="background:rgb(242,54,69)"></i>Gann 陰（下向き）</span>
+    <span>（ ）の日数と↑↓の数字は、切り替わった日＝1日目。切り替わった日は濃い色</span>
+    <span>GC／DC＝この日にEMAが上／下に抜けた</span><span><i style="background:rgb(230,140,20)"></i>出来高が20日平均の2倍以上</span>
+    <span>★☆＝高値・安値がそろって3日続けて上昇／下落</span>
+    <span>対TOPIX(9)＝9日間の値動きをTOPIXと比べた差</span>
+  </div>
+  <p class="foot">テーマ別株価ボード デモ版（オーダーメイドの作例・2026-11-14）　四象ラボ　※架空データ。売買をすすめるものではありません。TradingViewはTradingView, Inc.の商標です。</p>
+</div>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+let s = 20261024; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+const g = () => { let u = 0; for (let i = 0; i < 6; i++) u += rnd(); return (u - 3) * 1.41; };
+const N = 300, OUT = 30;
+const THEMES = [
+  { name: "半導体", list: [["精密機器","さくら計測"],["卸売業","みなとデバイス"],["卸売業","東雲エレクトロ"],["電気機器","銀河メモリ"],["卸売業","大和マクロ"],["金属製品","白銀シリコン"],["金属製品","朝凪テクノ"],["化学","若葉ケミカル"],["その他製品","翠嵐フォトマスク"],["サービス業","青葉マテリアル"],["機械","疾風ダイシング"],["機械","黎明メカ"],["機械","光風コーティング"],["機械","琴平プロセス"],["機械","高砂モールド"],["機械","千歳ロボ"],["機械","紫苑プラズマ"],["電気機器","富士見電機"],["電気機器","鳳凰エレクトリック"],["電気機器","初音ロジック"],["電気機器","桐生メカトロ"],["電気機器","九曜プローブ"],["電気機器","雪華パワー"],["電気機器","茜エレクトロニクス"],["電気機器","蒼天真空"],["電気機器","琥珀アルプ"],["電気機器","八雲材料"],["電気機器","日向計測"],["電気機器","雷鳥テスト"],["電気機器","楓マイクロ"],["電気機器","月影チップス"],["電気機器","早瀬レーザー"],["電気機器","瑞穂セラミック"],["電気機器","暁電機"],["電気機器","紅葉デバイス"],["精密機器","星川精密"],["電気機器","碧海スクリーン"],["電気機器","玄武エレクトロン"],["ETF","半導体ETF（架空）"]], hot: 1.6 },
+  { name: "銀行", list: [["銀行業","あさひFG"],["銀行業","常盤FG"],["銀行業","瑞穂中央FG"],["銀行業","ゆうなぎ銀行"],["銀行業","白樺HD"],["銀行業","琥珀トラストG"],["銀行業","いずみHD"],["銀行業","しおかぜFG"],["銀行業","ちとせFG"],["銀行業","楽天地銀行"],["銀行業","京橋FG"],["銀行業","めぐみFG"],["銀行業","九曜FG"],["銀行業","横浜みなとFG"],["銀行業","西海FH"],["銀行業","ひなたHD"],["銀行業","SBI青葉銀行"],["銀行業","あおば銀行"],["銀行業","千葉の森銀行"],["銀行業","群青銀行"],["銀行業","七星銀行"],["銀行業","ふくろうFG"],["銀行業","八雲長野銀行"],["銀行業","ほくせいFG"],["銀行業","セブンスター銀行"],["銀行業","山陽FG"],["銀行業","東京きらりFG"],["銀行業","富山第二銀行"],["銀行業","第五北越FG"],["銀行業","おきなみFG"],["銀行業","十七FG"],["銀行業","CCWグループ"],["銀行業","あいおいFG"],["銀行業","武蔵の銀行"],["銀行業","房総興業銀行"],["銀行業","東邦みらい銀行"],["銀行業","駿河湾銀行"],["銀行業","甲斐中央銀行"],["銀行業","大垣みどり銀行"]], hot: 0.9 }
+];
+const dates = []; { const d = new Date(2026, 9, 23); while (dates.length < N) { if (d.getDay() % 6) dates.unshift(new Date(d)); d.setDate(d.getDate() - 1); } }
+// 市場（TOPIX架空）
+const mr = [], mc = [], mh = [], ml = []; { let v = 0, p = 2800; for (let t = 0; t < N; t++) { v = v * .97 + g() * .03; const r = (v * .4 + .03 + g() * .85) / 100; mr.push(r); p *= 1 + r; mc.push(p); mh.push(p * (1 + Math.abs(g()) * .004)); ml.push(p * (1 - Math.abs(g()) * .004)); } }
+function simStock(hot) {
+  const beta = Math.max(.3, .8 + (hot - 1) * .9 + g() * .3), P = 50 + rnd() * 50, ph = rnd() * 6.283, A = .2 + rnd() * .4;
+  const c = [], h = [], l = [], v = []; let p = 500 + Math.floor(rnd() * 60) * 100, k = g() * .15, base = 1e5 * (1 + rnd() * 9);
+  for (let t = 0; t < N; t++) {
+    k = k * .9 + g() * .08;
+    const a = (A * Math.sin(6.283 * t / P + ph) + k + g() * 1.1) / 100;
+    p *= 1 + beta * mr[t] + a; c.push(p);
+    h.push(p * (1 + Math.abs(g()) * .008)); l.push(p * (1 - Math.abs(g()) * .008));
+    v.push(base * (0.7 + rnd() * .6) * (rnd() < .04 ? 2 + rnd() * 2 : 1));
+  }
+  return { c, h, l, v };
+}
+// ── v3.7 と同じ計算 ──
+const sma = (a, t, n) => { if (t - n + 1 < 0) return NaN; let x = 0; for (let k = t - n + 1; k <= t; k++) x += a[k]; return x / n; };
+function emaArr(a, n) { const o = [], k = 2 / (n + 1); a.forEach((x, i) => o.push(i ? x * k + o[i - 1] * (1 - k) : x)); return o; }
+function calc(st, isBm) {
+  const { c, h, l, v } = st, r = c.map((x, i) => i ? x / c[i - 1] - 1 : NaN);
+  const beta = [], tr = [], gn = [], m1d = [], m1n = [], m2d = [], m2n = [], vr = [], rel = [], up3 = [], dn3 = [];
+  const e5 = emaArr(c, 5), e20 = emaArr(c, 20), e40 = emaArr(c, 40);
+  let bu = NaN, bd = NaN, x1 = NaN, x2 = NaN;
+  for (let t = 0; t < N; t++) {
+    // β（100日）
+    if (t >= 100) { let sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0; for (let k = t - 99; k <= t; k++) { const x = r[k], y = mr[k]; sx += x; sy += y; sxx += x * x; syy += y * y; sxy += x * y; }
+      const n = 100, cov = sxy / n - sx * sy / n / n, vx = sxx / n - (sx / n) ** 2, vy = syy / n - (sy / n) ** 2; beta.push(cov / vy); } else beta.push(NaN);
+    rel.push(t >= 9 ? ((c[t] / c[t - 9] - 1) - (mc[t] / mc[t - 9] - 1)) * 100 : NaN);
+    // Gann（高値13・安値21の平均を前日基準で）
+    const hA = sma(h, t - 1, 13), lA = sma(l, t - 1, 21);
+    if (c[t] > hA) bu = 0; else if (!isNaN(bu)) bu++;
+    if (c[t] < lA) bd = 0; else if (!isNaN(bd)) bd++;
+    let d = 1; if (!isNaN(bu) && !isNaN(bd)) d = bu <= bd ? 1 : -1; else if (!isNaN(bd)) d = -1;
+    tr.push(d); gn.push(t && tr[t - 1] === d ? gn[t - 1] + 1 : 1);
+    up3.push(t >= 3 && h[t] > h[t-1] && h[t-1] > h[t-2] && h[t-2] > h[t-3] && l[t] > l[t-1] && l[t-1] > l[t-2] && l[t-2] > l[t-3]);
+    dn3.push(t >= 3 && h[t] < h[t-1] && h[t-1] < h[t-2] && h[t-2] < h[t-3] && l[t] < l[t-1] && l[t-1] < l[t-2] && l[t-2] < l[t-3]);
+    // EMAのクロス（クロスした日＝1日目）
+    const d1 = e5[t] >= e20[t] ? 1 : -1, d2 = e20[t] >= e40[t] ? 1 : -1;
+    if (t && d1 !== m1d[t - 1]) x1 = 1; else if (!isNaN(x1)) x1++;
+    if (t && d2 !== m2d[t - 1]) x2 = 1; else if (!isNaN(x2)) x2++;
+    m1d.push(d1); m1n.push(x1); m2d.push(d2); m2n.push(x2);
+    const va = sma(v, t - 1, 20); vr.push(isBm ? NaN : va > 0 ? v[t] / va : NaN);
+  }
+  const px = c.slice(), pc = c.map((x, i) => i ? (x / c[i - 1] - 1) * 100 : NaN);
+  return { beta, rel, tr, gn, up3, dn3, m1d, m1n, m2d, m2n, vr, px, pc };
+}
+const BM = calc({ c: mc, h: mh, l: ml, v: mc.map(() => 0) }, true);
+THEMES.forEach(th => th.rows = th.list.map(([sec, nm], i) => ({ sec, nm, code: "D" + String(i + 1).padStart(3, "0"), ...calc(simStock(sec === "ETF" ? 1.4 : th.hot), false) })));
+
+// ── 表示 ──
+const T0 = N - OUT;
+const fmtD = d => `${d.getMonth() + 1}/${d.getDate()}`;
+const fmtPx = x => isNaN(x) ? "―" : x >= 1000 ? Math.round(x).toLocaleString("ja-JP") : x.toLocaleString("ja-JP", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const pct = v => { if (isNaN(v)) return `<td class="dim">―</td>`; if (Math.abs(v) < .05) v = 0; return `<td class="${v >= 0 ? "p" : "m"}">${v > 0 ? "+" : ""}${v.toFixed(1)}%</td>`; };
+const gannTd = (d, n) => `<td class="w" style="background:rgba(var(${d > 0 ? "--green" : "--red"}),${n === 1 ? 1 : .4})" title="Gann ${d > 0 ? "陽（上向き）" : "陰（下向き）"}の${n}日目">${d > 0 ? "陽" : "陰"}(${n})</td>`;
+const maTd = (d, n, lab) => isNaN(n) ? `<td>―</td>` : n === 1 ? `<td class="w" style="background:rgb(var(${d > 0 ? "--lime" : "--red"}))" title="${lab}：この日に${d > 0 ? "上に抜けた（GC）" : "下に抜けた（DC）"}">${d > 0 ? "GC" : "DC"}</td>` : `<td class="w" style="background:rgba(var(${d > 0 ? "--green" : "--red"}),.6)" title="${lab}：短い線が${d > 0 ? "上" : "下"}にあって${n}日目">${d > 0 ? "↑" : "↓"}${n}</td>`;
+const volTd = x => isNaN(x) ? `<td>―</td>` : `<td style="${x >= 3 ? "background:rgb(var(--hot))" : x >= 2 ? "background:rgba(var(--hot),.55)" : ""}" title="前日までの20日平均の${x.toFixed(1)}倍">${x.toFixed(1)}倍</td>`;
+function rowHtml(r, t, cls = "", isBm = false) {
+  const star = r.up3?.[t] ? " ★" : r.dn3?.[t] ? " ☆" : "";
+  return `<tr class="${cls}"><td class="dim">${r.sec}</td><td class="nm" title="${r.code || ""}">${r.nm}${star}</td><td class="w" style="text-align:right">${fmtPx(r.px[t])}</td>${pct(r.pc[t])}${gannTd(r.tr[t], r.gn[t])}<td>${isBm ? "1.00" : r.beta[t].toFixed(2)}</td>${maTd(r.m1d[t], r.m1n[t], "5-20")}${maTd(r.m2d[t], r.m2n[t], "20-40")}${volTd(r.vr[t])}${isBm ? '<td class="p">0.0%</td>' : pct(r.rel[t])}</tr>`;
+}
+function render() {
+  const th = THEMES[+$("theme").value], t = N - 1 - (+$("basis").value), srt = $("sort").value;
+  $("dayVal").textContent = `${dates[t].getFullYear()}/${fmtD(dates[t])}`;
+  let rows = th.rows.slice();
+  const key = r => srt === "rel" ? r.rel[t] : srt === "beta" ? r.beta[t] : srt === "vol" ? r.vr[t] : srt === "pc" ? r.pc[t] : srt === "gann" ? (r.tr[t] > 0 ? 1000 - r.gn[t] : -1000 + r.gn[t]) : r.rel[t];
+  if (srt !== "none") rows.sort((a, b) => key(b) - key(a));
+  // テーマ平均
+  const k = rows.length, avg = f => rows.reduce((z, r) => z + f(r), 0) / k;
+  const avgRow = `<tr class="av"><td class="dim">テーマ</td><td class="nm">平均（${k}銘柄）</td><td></td>${pct(avg(r => r.pc[t]))}<td class="w" title="Gannが陽の銘柄数">陽${rows.filter(r => r.tr[t] > 0).length}/${k}</td><td>${avg(r => r.beta[t]).toFixed(2)}</td><td class="w" title="短い線が上の銘柄数">↑${rows.filter(r => r.m1d[t] > 0).length}</td><td class="w" title="短い線が上の銘柄数">↑${rows.filter(r => r.m2d[t] > 0).length}</td><td title="出来高2倍以上の銘柄数">${rows.filter(r => r.vr[t] >= 2).length}銘柄</td>${pct(avg(r => r.rel[t]))}</tr>`;
+  const bmRow = rowHtml({ sec: "指数", nm: "TOPIX（架空）", ...BM }, t, "bm", true);
+  const head = `<colgroup><col class="c-sec"><col class="c-nm"><col class="c-px"><col class="c-n"><col class="c-n"><col class="c-n"><col class="c-n"><col class="c-n"><col class="c-n"><col class="c-n"></colgroup><tr><th>業種</th><th title="テーマ名と値の日付">${th.name}　${fmtD(dates[t])}</th><th title="終値（取引時間中は今の値）">株価</th><th>前日比</th><th>Gann</th><th>β</th><th>5-20</th><th>20-40</th><th>出来高</th><th>対TOPIX(9)</th></tr>`;
+  const left = rows.slice(0, 20).map(r => rowHtml(r, t)).join("") + avgRow;
+  const right = rows.slice(20).map(r => rowHtml(r, t)).join("") + `<tr class="empty"><td colspan="10"></td></tr>`.repeat(Math.max(0, 20 - rows.slice(20).length)) + bmRow;
+  $("board").innerHTML = `<table aria-label="左の表">${head}${left}</table><table aria-label="右の表">${head}${right}</table>`;
+}
+["theme", "sort", "basis"].forEach(id => $(id).addEventListener("change", render));
+render();
+})();
+</script>
+
+</body></html>
